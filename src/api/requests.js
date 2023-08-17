@@ -5,7 +5,6 @@ export async function loadUsers() {
 
   try {
     const responseData = (await apiClient.get('/users.json')).data;
-    console.log('Data: ', responseData);
 
     for (const key in responseData) {
       users.push({

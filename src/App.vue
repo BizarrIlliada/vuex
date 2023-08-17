@@ -1,54 +1,97 @@
 <template>
-  <BaseContainer title="Vuex">
-    <h3>
-      {{ $store.getters.getCounter }}
-    </h3>
-    <div v-if="currentUser">
-      <div>
-        {{ currentUser.name }}
+  <section v-if="isLogged">
+    <BaseContainer>
+      <div class="buttons-container">
+        <button
+          v-for="user of users"
+          :key="user.id"
+          @click="setCurrentUser(user.id)"
+          :class="{ active: getActiveButtonClass(user.id) }"
+        >
+          {{ user.name }}
+        </button>
       </div>
-      <div>
-        {{ currentUser.date }}
-      </div>
-      <div>
-        {{ currentUser.permissions }}
-      </div>
-      <div>
-        {{ currentUser.id }}
-      </div>
-    </div>
-    <ChangeCounter />
-    <button @click="increase({ value: 10} )">Add 10</button>
-    <FavoriteValue></FavoriteValue>
+    </BaseContainer>
+    <UserCard
+      v-if="currentUser"
+      :name="currentUser.name"
+      :date="currentUser.date"
+      :permissions="currentUser.permissions"
+    />
+    <BaseContainer title="Vuex">
+      <h3>
+        {{ counter }}
+      </h3>
+      <FavoriteValue />
+      <ChangeCounter />
+      <button @click="increase({ value: 10} )">Add 10</button>
+    </BaseContainer>
+  </section>
+
+  <BaseContainer title="Auth">
+    <UserAuth :isLogged="isLogged" />
   </BaseContainer>
 </template>
 
 <script>
   import { mapGetters, mapActions } from 'vuex';
 
-  import BaseContainer from './components/UI/BaseContainer.vue';
-  import ChangeCounter from './components/ChangeCounter.vue';
   import FavoriteValue from './components/FavoriteValue.vue';
+  import ChangeCounter from './components/ChangeCounter.vue';
+  import UserAuth from './components/UserAuth.vue';
+  import UserCard from './components/UserCard.vue';
 
   export default {
     components: {
-      BaseContainer,
       ChangeCounter,
       FavoriteValue,
+      UserAuth,
+      UserCard,
     },
 
-    computed: {
-      ...mapGetters(['getUsers']),
-
-      currentUser() {
-        return this.getUsers.filter(user => user.id === '-NbeS61ldKof2h3xocLj')[0];
+    data() {
+      return {
+        currentUser: null,
       }
     },
 
+    computed: {
+      ...mapGetters('usersModule', {
+        users: 'getUsers',
+      }),
+      ...mapGetters('counterModule', {
+        counter: 'getCounter',
+      }),
+      ...mapGetters({
+        isLogged: 'getIsLoggedIn',
+      }),
+
+      // counter() {
+      //   return this.$store.getters['counterModule/getCounter']
+      // },
+    },
+    
     methods: {
-      ...mapActions(['increase', 'fillUsers'])
+      ...mapActions('counterModule', ['increase']),
+      ...mapActions('usersModule', ['fillUsers']),
+
+      setCurrentUser(userId) {
+        this.currentUser = this.users.find(user => user.id === userId);
+      },
+
+      getActiveButtonClass(userId) {
+        return this.currentUser && userId === this.currentUser.id;
+      },
     },
 
+    watch: {
+      isLogged() {
+        if (this.isLogged === false) {
+          this.currentUser = null;
+        }
+      }
+    },
+    
     async created() {
       await this.fillUsers();
     }
@@ -66,5 +109,29 @@
 
   body {
     margin: 0;
+  }
+
+  button {
+    width: 100px;
+    border: 1px solid #add8e6;
+    border-radius: 5px;
+    background-color: #fff;
+    transition: 0.3s;
+  }
+  
+  button:hover {
+    background-color: #add8e69f;
+  }
+
+  button.active {
+    background-color: #add8e6;
+  }
+
+  .buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
   }
 </style>

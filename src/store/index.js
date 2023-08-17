@@ -1,57 +1,42 @@
 import { createStore } from 'vuex';
-import { loadUsers } from '../api/requests';
+import { counterModule } from './modules/counterModule';
+import { usersModule } from './modules/usersModule';
 
 const store = createStore({
   state() {
     return {
-      counter: 0,
-      users: [],
+      isLoggedIn: false,
     }
   },
 
   getters: {
-    getCounter(state) {
-      return state.counter;
-    },
+    getIsLoggedIn(state, getters, rootState, rootGetters) {
+      console.log(getters, rootState, rootGetters);
 
-    getFavoriteCounter(_, getters) {
-      return getters.getCounter * 3;
-    },
-
-    getUsers(state) {
-      return state.users;
+      return state.isLoggedIn;
     }
   },
 
   mutations: {
-    increment(state) {
-      state.counter++;
+    changeIsLoggedIn(state, payload) {
+      state.isLoggedIn = payload;
     },
-
-    increase(state, payload) {
-      state.counter += payload.value;
-    },
-
-    fillUsers(state, payload) {
-      state.users = payload;
-    }
   },
 
   actions: {
-    increment(context) {
-      console.log(context);
-      context.commit('increment');
+    login(context) {
+      context.commit('changeIsLoggedIn', true);
     },
 
-    increase(context, payload) {
-      context.commit('increase', payload);
+    logout(context) {
+      context.commit('changeIsLoggedIn', false);
+      context.commit('counterModule/clearCounter');
     },
+  },
 
-    async fillUsers(context) {
-      const users = await loadUsers();
-
-      context.commit('fillUsers', users);
-    }
+  modules: {
+    counterModule,
+    usersModule,
   },
 });
 
